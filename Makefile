@@ -54,7 +54,7 @@ db:
 	docker compose -f docker-compose-db.yaml up
 
 run-dev:
-	docker compoes up -f docker-compose.yml -f docker-compose.dev.yml --build
+	docker compose up -f docker-compose.yml -f docker-compose.dev.yml --build
 
 all: format build test lint
 
