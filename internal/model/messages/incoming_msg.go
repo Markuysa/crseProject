@@ -19,11 +19,23 @@ func New(tgClient MessageSender) *Model {
 }
 
 func (m *Model) IncomingMessage(msg Message) error {
-	if msg.Text == "/start" {
+
+	switch msg.Text {
+	case "/start":
 		m.tgClient.SendMessage("hello", msg.UserID)
-		return nil
+	case "/add":
+		m.tgClient.SendMessage("Enter the amount:", msg.UserID)
+		//service.Add()
+	case "/weekreport":
+		m.tgClient.SendMessage("Form the weekly report...", msg.UserID)
+
+	case "/monthreport":
+		m.tgClient.SendMessage("Form the monthly report...", msg.UserID)
+	case "/yearreport":
+		m.tgClient.SendMessage("Form the yearly report...", msg.UserID)
+	default:
+		m.tgClient.SendMessage("Unknown command", msg.UserID)
 	}
-	m.tgClient.SendMessage("unknown command", msg.UserID)
 	return nil
 
 }

@@ -43,7 +43,6 @@ func (c *Client) ListenUpdates(msgModel *messages.Model) {
 
 	for update := range updates {
 		if update.Message != nil {
-			log.Printf("[%s] %s", update.Message, update.Message.ForwardFrom.ID)
 
 			err := msgModel.IncomingMessage(messages.Message{
 				Text:   update.Message.Text,
