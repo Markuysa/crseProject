@@ -2,11 +2,9 @@ package database
 
 import (
 	"context"
-	"log"
 	"ozonProjectmodule/internal/model/domain"
 	"time"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
@@ -19,7 +17,7 @@ func NewRatesDB(db *sqlx.DB) *RatesDB {
 	return &RatesDB{db: db}
 }
 
-func (db *RatesDB) Add(ctx context.Context, rate domain.Rate) error {
+func (db *RatesDB) AddRate(ctx context.Context, rate domain.Rate) error {
 	var query = `
 	insert into rates(
 		created_at,
@@ -49,30 +47,44 @@ func (db *RatesDB) Add(ctx context.Context, rate domain.Rate) error {
 
 func (db *RatesDB) GetRate(ctx context.Context, code string, date time.Time) (*domain.Rate, error) {
 
-	builder := sq.Select(
-		"id",
-		"code",
-		"nominal",
-		"kopecks",
-		"original",
-		"ts",
-		"created_at",
-		"updated_at",
-		"deleted_at",
-	).From("rates").Where(sq.Eq{"code": code})
+	// builder := sq.Select(
+	// 	"id",
+	// 	"code",
+	// 	"nominal",
+	// 	"kopecks",
+	// 	"original",
+	// 	"ts",
+	// 	"created_at",
+	// 	"updated_at",
+	// 	"deleted_at",
+	// ).From("rates").Where(sq.Eq{"code": code})
 
-	if !date.IsZero() {
-		builder = builder.Where(sq.Eq{"ts": date})
-	}
-	query, args, err := builder.ToSql()
+	query := `
+	select 	id,
+			code,
+			nominal,
+			kopecks,
+			original,
+			ts,
+			created_at,
+			updated_at,
+			deleted_at
+	from rates
+	where code = $1 AND ts = $2
+	`
 
-	if err != nil {
-		return nil, errors.Wrap(err, "conversion to sql code in builder")
-	}
-	log.Print(builder)
+	// if !date.IsZero() {
+	// 	builder = builder.Where(sq.Eq{"ts": date})
+	// }
+	// query, args, err := builder.ToSql()
+
+	// if err != nil {
+	// 	return nil, errors.Wrap(err, "conversion to sql code in builder")
+	// }
 	var rate domain.Rate
 
-	err = db.db.QueryRowContext(ctx, query, args...).Scan(&rate)
+	err := db.db.QueryRowContext(ctx, query, code, date).Scan(&rate.ID, &rate.Code, &rate.Nominal,
+		&rate.Kopecks, &rate.Original, &rate.Ts, &rate.CreatedAt, &rate.UpdatedAt, &rate.DeletedAt)
 	if err != nil {
 		return nil, errors.Wrap(err, "queryrow in database")
 	}

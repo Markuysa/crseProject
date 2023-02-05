@@ -11,6 +11,7 @@ import (
 	"time"
 
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+
 	"github.com/jmoiron/sqlx"
 )
 
@@ -30,16 +31,19 @@ func main() {
 		log.Fatal(err)
 	}
 
-	ratesDB := database.NewRatesDB(db)
-	object := domain.Rate{
-		Code:     "RUB",
-		Nominal:  12,
-		Kopecks:  12,
-		Original: "Rubles",
-		Ts:       time.Now(),
+	db2 := database.NewRatesDB(db)
+	database.NewExpenseDB(db)
+	database.NewUserDB(db)
+	rate := domain.Rate{
+		CreatedAt: time.Now(),
+		Code:      "12",
+		Nominal:   12,
+		Kopecks:   12,
+		Original:  "as",
+		Ts:        time.Now(),
 	}
-	ratesDB.Add(ctx, object)
-	log.Print(ratesDB.GetRate(ctx, object.Code, object.Ts))
+	db2.AddRate(ctx, rate)
+	log.Println(db2.GetRate(ctx, rate.Code, rate.CreatedAt))
 	tgClient, err := tg.New(config)
 
 	if err != nil {
@@ -49,4 +53,5 @@ func main() {
 	msgModel := messages.New(tgClient)
 
 	tgClient.ListenUpdates(msgModel)
+
 }

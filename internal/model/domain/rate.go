@@ -12,6 +12,6 @@ type Rate struct {
 	Original  string
 	Ts        time.Time
 	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt time.Time
+	UpdatedAt *time.Time
+	DeletedAt *time.Time
 }
