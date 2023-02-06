@@ -30,7 +30,6 @@ func (db *RatesDB) AddRate(ctx context.Context, rate domain.Rate) error {
 		$1,$2,$3,$4,$5,$6
 	);
 	`
-
 	_, err := db.db.ExecContext(ctx, query,
 		rate.CreatedAt,
 		rate.Code,
@@ -46,19 +45,6 @@ func (db *RatesDB) AddRate(ctx context.Context, rate domain.Rate) error {
 }
 
 func (db *RatesDB) GetRate(ctx context.Context, code string, date time.Time) (*domain.Rate, error) {
-
-	// builder := sq.Select(
-	// 	"id",
-	// 	"code",
-	// 	"nominal",
-	// 	"kopecks",
-	// 	"original",
-	// 	"ts",
-	// 	"created_at",
-	// 	"updated_at",
-	// 	"deleted_at",
-	// ).From("rates").Where(sq.Eq{"code": code})
-
 	query := `
 	select 	id,
 			code,
@@ -72,15 +58,6 @@ func (db *RatesDB) GetRate(ctx context.Context, code string, date time.Time) (*d
 	from rates
 	where code = $1 AND ts = $2
 	`
-
-	// if !date.IsZero() {
-	// 	builder = builder.Where(sq.Eq{"ts": date})
-	// }
-	// query, args, err := builder.ToSql()
-
-	// if err != nil {
-	// 	return nil, errors.Wrap(err, "conversion to sql code in builder")
-	// }
 	var rate domain.Rate
 
 	err := db.db.QueryRowContext(ctx, query, code, date).Scan(&rate.ID, &rate.Code, &rate.Nominal,

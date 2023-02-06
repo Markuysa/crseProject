@@ -2,21 +2,11 @@ package database
 
 import (
 	"context"
-	"log"
 	"ozonProjectmodule/internal/model/domain"
-	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
-	"gorm.io/gorm"
 )
-
-type Expense struct {
-	gorm.Model
-	Expenditure_type string
-	Date             time.Time
-	Amount           int64 // в копейках
-}
 
 type ExpenseDB struct {
 	db *sqlx.DB
@@ -30,7 +20,7 @@ func NewExpenseDB(db *sqlx.DB) *ExpenseDB {
 
 }
 
-func (db *ExpenseDB) AddExpence(ctx context.Context, expenditure domain.Expenditure) error {
+func (db *ExpenseDB) AddExpence(ctx context.Context, expenditure domain.Expense) error {
 
 	query := `
 		insert into expenditures (
@@ -42,7 +32,7 @@ func (db *ExpenseDB) AddExpence(ctx context.Context, expenditure domain.Expendit
 		);
 
 	`
-	_, err := db.db.ExecContext(ctx, query, expenditure.Anmount, expenditure.ExpenditureType,
+	_, err := db.db.ExecContext(ctx, query, expenditure.Amount, expenditure.Expenditure_type,
 		expenditure.Date)
 	if err != nil {
 		return errors.Wrap(err, "adding expense")
@@ -50,25 +40,23 @@ func (db *ExpenseDB) AddExpence(ctx context.Context, expenditure domain.Expendit
 	return nil
 
 }
-func (db *ExpenseDB) GetExpense(ctx context.Context, date time.Time) (*Expense, error) {
+func (db *ExpenseDB) GetExpenses(ctx context.Context, userID int64) ([]domain.Expense, error) {
 
-	var expence Expense
+	var expenses []domain.Expense
 
 	query := `
 		select 	anmount,
 				expenditure_type,
 				date
 		from expenditures
-		where date = $1
+		where userID = $1
 	`
 
-	result, err := db.db.QueryxContext(ctx, query, date)
-	log.Println(date)
+	err := db.db.SelectContext(ctx, &expenses, query, userID)
 	if err != nil {
 		return nil, errors.Wrap(err, "query expese")
 	}
-	result.StructScan(&expence)
 
-	return &expence, nil
+	return expenses, nil
 
 }

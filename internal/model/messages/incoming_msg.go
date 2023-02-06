@@ -1,22 +1,10 @@
 package messages
 
-type Message struct {
-	Text   string
-	UserID int64
-}
-
-type MessageSender interface {
-	SendMessage(Text string, UserID int64) error
-}
-
-type Model struct {
-	tgClient MessageSender
-}
-
-func New(tgClient MessageSender) *Model {
-	return &Model{tgClient: tgClient}
-
-}
+import (
+	"context"
+	"ozonProjectmodule/internal/model/domain"
+	"strings"
+)
 
 const newUser = `Привет! Я буду помогать ввести твою бухгалтерию. Но перед началом работы тебе нужны выбрать валюту по умолчанию в которой ты производишь расходы`
 
@@ -37,26 +25,34 @@ const helpMessage = `Для работы с ботом тебе могут по�
 
 const unknownMessage = `Неизвестная команда. Чтобы посмотреть список команд отправь /help`
 
-func (m *Model) IncomingMessage(msg Message) error {
+func (m *Model) IncomingMessage(ctx context.Context, msg Message) error {
 
-	switch msg.Text {
-	case "/start":
-		m.tgClient.SendMessage(introMessage, msg.UserID)
-	case "/help":
-		m.tgClient.SendMessage(helpMessage, msg.UserID)
-	case "/add":
-		m.tgClient.SendMessage("Enter the amount:", msg.UserID)
-		//service.Add()
-	case "/weekreport":
-		m.tgClient.SendMessage("Form the weekly report...", msg.UserID)
+	// switch msg.Text {
+	// case "/start":
+	// 	m.tgClient.SendMessage(introMessage, msg.UserID)
+	// case "/help":
+	// 	m.tgClient.SendMessage(helpMessage, msg.UserID)
+	// case "/add":
+	// 	m.tgClient.SendMessage("Enter the amount:", msg.UserID)
+	// 	//service.Add()
+	// case "/weekreport":
+	// 	m.tgClient.SendMessage("Form the weekly report...", msg.UserID)
 
-	case "/monthreport":
-		m.tgClient.SendMessage("Form the monthly report...", msg.UserID)
-	case "/yearreport":
-		m.tgClient.SendMessage("Form the yearly report...", msg.UserID)
-	default:
-		m.tgClient.SendMessage(unknownMessage, msg.UserID)
+	// case "/monthreport":
+	// 	m.tgClient.SendMessage("Form the monthly report...", msg.UserID)
+	// case "/yearreport":
+	// 	m.tgClient.SendMessage("Form the yearly report...", msg.UserID)
+	// default:
+	// 	m.tgClient.SendMessage(unknownMessage, msg.UserID)
+	// }
+
+	if strings.HasPrefix(msg.Text,"/set_currency") && !m.userDB.UserExist(ctx, msg.UserID) {
+		m.userDB.AddUser(ctx,domain.User{
+			UserID: msg.UserID,
+			DefaultCurrency: strings.Trim(msg.Text,"/set_currency"),
+		})
 	}
+
 	return nil
 
 }
